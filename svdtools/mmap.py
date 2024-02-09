@@ -8,6 +8,7 @@ Licensed under the MIT and Apache 2.0 licenses. See LICENSE files for details.
 import copy
 
 import lxml.etree as ET
+import lxml.etree
 
 
 def get_field_offset_width(ftag):
@@ -204,7 +205,7 @@ def parse(svdfile):
     """
     Parse SVD file into dict of peripherals, registers, and fields.
     """
-    tree = ET.parse(svdfile)
+    tree = ET.parse(svdfile, parser=lxml.etree.XMLParser(resolve_entities=False))
     peripherals = {}
     device_interrupts = {}
     for ptag in tree.find("peripherals").findall("peripheral"):

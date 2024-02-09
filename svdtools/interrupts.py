@@ -5,11 +5,12 @@ Licensed under the MIT and Apache 2.0 licenses. See LICENSE files for details.
 """
 
 import lxml.etree as ET
+import lxml.etree
 
 
 def parse_device(svd_file):
     interrupts = {}
-    tree = ET.parse(svd_file)
+    tree = ET.parse(svd_file, parser=lxml.etree.XMLParser(resolve_entities=False))
     dname = tree.find("name").text
     for ptag in tree.iter("peripheral"):
         pname = ptag.find("name").text

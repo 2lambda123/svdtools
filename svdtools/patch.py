@@ -19,6 +19,7 @@ import yaml
 from braceexpand import braceexpand
 from lxml.etree import _Element as Element
 from lxml.etree import _ElementTree as ElementTree
+import lxml.etree
 
 DEVICE_CHILDREN = [
     "vendor",
@@ -581,7 +582,7 @@ class Device:
         pcopyname = pcopysrc[-1]
         if len(pcopysrc) == 2:
             pcopyfile = abspath(path, pcopysrc[0])
-            filedev = Device(ET.parse(pcopyfile))
+            filedev = Device(ET.parse(pcopyfile, parser=lxml.etree.XMLParser(resolve_entities=False)))
             source = filedev.device.find("peripherals")
         else:
             source = parent
@@ -1802,7 +1803,7 @@ def main(yaml_file):
         raise RuntimeError("You must have an svd key in the root YAML file")
     svdpath = abspath(yaml_file, root["_svd"])
     svdpath_out = svdpath + ".patched"
-    svd = ET.parse(svdpath)
+    svd = ET.parse(svdpath, parser=lxml.etree.XMLParser(resolve_entities=False))
 
     # Load all included YAML files
     yaml_includes(root)
