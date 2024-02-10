@@ -44,6 +44,22 @@ DEVICE_CHILDREN = [
 # Set up pyyaml to use ordered dicts so we generate the same
 # XML output each time, and detect and refuse duplicate keys.
 def dict_constructor(loader, node, deep=False):
+    """Constructs a dictionary from a given node.
+    Parameters:
+        - loader (object): YAML loader object.
+        - node (object): YAML node object.
+        - deep (bool): Whether to deep copy the node or not.
+    Returns:
+        - OrderedDict: A dictionary constructed from the given node.
+    Processing Logic:
+        - Create an empty set.
+        - Loop through the key-value pairs in the node.
+        - Construct the key from the key node.
+        - Check for duplicate keys and raise an error if found.
+        - Add the key to the set.
+        - Construct an ordered dictionary from the node.
+        - Return the ordered dictionary."""
+    
     mapping = set()
     for key_node, _ in node.value:
         key = loader.construct_object(key_node, deep=deep)
@@ -213,6 +229,17 @@ def spec_ind(spec):
 
 
 def check_offsets(offsets, dimIncrement):
+    """Checks if the given list of offsets is evenly spaced by the given dimension increment.
+    Parameters:
+        - offsets (list): List of integer offsets.
+        - dimIncrement (int): Dimension increment to check against.
+    Returns:
+        - bool: True if the offsets are evenly spaced, False otherwise.
+    Processing Logic:
+        - Checks if each offset is exactly dimIncrement away from the previous one.
+        - Returns False if any two consecutive offsets are not evenly spaced.
+        - Returns True if all offsets are evenly spaced."""
+    
     for o1, o2 in zip(offsets[:-1], offsets[1:]):
         if o2 - o1 != dimIncrement:
             return False
@@ -220,6 +247,17 @@ def check_offsets(offsets, dimIncrement):
 
 
 def check_bitmasks(masks, mask):
+    """"Checks if all bitmasks in a list are equal to a given bitmask."
+    Parameters:
+        - masks (list): List of bitmasks to be checked.
+        - mask (int): Bitmask to be compared against.
+    Returns:
+        - bool: True if all bitmasks are equal to the given bitmask, False otherwise.
+    Processing Logic:
+        - Iterate through each bitmask in the list.
+        - If the current bitmask is not equal to the given bitmask, return False.
+        - If all bitmasks are equal, return True."""
+    
     for m in masks:
         if m != mask:
             return False
@@ -378,6 +416,15 @@ def sort_element(tag):
 
 
 def sort_recursive(tag):
+    """Sorts the elements of a given tag recursively.
+    Parameters:
+        - tag (Element): The tag whose elements are to be sorted.
+    Returns:
+        - None: The function does not return anything.
+    Processing Logic:
+        - Sorts the elements of the given tag.
+        - Does not process children inside vendorExtensions."""
+    
     sort_element(tag)
     # Don't process children inside vendorExtensions.
     if tag.tag != "vendorExtensions":
@@ -386,6 +433,21 @@ def sort_recursive(tag):
 
 
 def get_element_name(element: Union[Element, ElementTree], description: str) -> str:
+    """Get the name of an element from its XML representation.
+    Parameters:
+        - element (Union[Element, ElementTree]): The XML element or tree to extract the name from.
+        - description (str): A description of the element, used for error messages.
+    Returns:
+        - str: The name of the element.
+    Processing Logic:
+        - Check that the element is either an Element or ElementTree.
+        - Check that the description is a string.
+        - Find the "name" tag within the element.
+        - Check that the "name" tag is an Element.
+        - Get the text within the "name" tag.
+        - Check that the name is a string.
+        - Return the name."""
+    
     assert isinstance(element, (Element, ElementTree))
     assert isinstance(description, str)
     nametag = element.find("name")
@@ -427,6 +489,16 @@ class Device:
     """Class collecting methods for processing device contents"""
 
     def __init__(self, device):
+        """Initializes the class with the specified device.
+        Parameters:
+            - device (str): The name of the device to be used.
+        Returns:
+            - None: The function does not return anything.
+        Processing Logic:
+            - Sets the device attribute.
+            - Does not return any code.
+            - Only takes in one parameter."""
+        
         self.device = device
 
     def iter_peripherals(self, pspec):
@@ -775,6 +847,16 @@ class Peripheral:
     """Class collecting methods for processing peripheral contents"""
 
     def __init__(self, ptag):
+        """Initializes an object with a given ptag and retrieves the name of the peripheral element associated with the ptag.
+        Parameters:
+            - ptag (str): The ptag associated with the peripheral element.
+        Returns:
+            - str: The name of the peripheral element.
+        Processing Logic:
+            - Initializes object with given ptag.
+            - Retrieves name of peripheral element.
+            - Returns name of peripheral element."""
+        
         self.ptag = ptag
         self.name = get_element_name(self.ptag, "peripheral")
 
@@ -1225,6 +1307,23 @@ class Peripheral:
 
     def process_cluster_tag(
         self, ctag: Element, cluster: OrderedDict[str, Any], update_fields: bool
+        """Process a cluster tag by handling deletions, strips, modifications, and additions.
+        Parameters:
+            - ctag (Element): The cluster tag to be processed.
+            - cluster (OrderedDict[str, Any]): The cluster to be processed.
+            - update_fields (bool): A boolean value indicating whether to update fields.
+        Returns:
+            - None: This function does not return anything.
+        Processing Logic:
+            - Handle deletions, strips, modifications, and additions.
+            - Assert that the input parameters are of the correct type.
+            - Use the Cluster class to handle the processing.
+            - If deletions is a list, delete each rspec in the list.
+            - If deletions is a dict, delete each rspec in the dict.
+            - Strip the prefix and suffix from the cluster.
+            - Modify the register with the specified rspec and rmod.
+            - Add the register with the specified rname and radd."""
+        
     ) -> None:
         assert isinstance(ctag, Element)
         assert isinstance(cluster, OrderedDict)
@@ -1254,6 +1353,21 @@ class Peripheral:
 
     def process_cluster(
         self, cspec: str, cluster: OrderedDict[str, Any], update_fields: bool = True
+        """Process a cluster by finding all clusters that match the provided spec and updating their fields if specified.
+        Parameters:
+            - cspec (str): The spec used to find matching clusters.
+            - cluster (OrderedDict[str, Any]): The cluster to be processed.
+            - update_fields (bool): Whether or not to update the fields of the matching clusters. Defaults to True.
+        Returns:
+            - None: This function does not return any value.
+        Processing Logic:
+            - Assert that cspec is a string.
+            - Assert that cluster is an OrderedDict.
+            - Assert that update_fields is a boolean.
+            - Find all clusters that match the spec.
+            - Process each matching cluster by calling process_cluster_tag() and incrementing ccount.
+            - If no clusters match the spec, raise a MissingClusterError."""
+        
     ) -> None:
         assert isinstance(cspec, str)
         assert isinstance(cluster, OrderedDict)
@@ -1271,6 +1385,8 @@ class Cluster:
     """Class collecting methods for processing `cluster` contents."""
 
     def __init__(self, ctag: Element) -> None:
+        """"""
+        
         assert isinstance(ctag, Element)
         self.ctag = ctag
         self.name = get_element_name(self.ctag, "cluster")
@@ -1288,6 +1404,8 @@ class Cluster:
         assert isinstance(radd, OrderedDict)
         parent = self.ctag
         for rtag in parent.iter("register"):
+        """"""
+        
             if get_element_name(rtag, "register") == rname:
                 raise SvdPatchError(
                     f"cluster {self.name} already has a register {rname}"
@@ -1307,6 +1425,8 @@ class Cluster:
         assert isinstance(rspec, str)
         assert isinstance(rmod, OrderedDict)
         for rtag in self.iter_registers(rspec):
+        """"""
+        
             for key, value in rmod.items():
                 tag = rtag.find(key)
                 if value == "" and tag is not None:
@@ -1319,6 +1439,8 @@ class Cluster:
     def delete_register(self, rspec: str) -> None:
         assert isinstance(rspec, str)
         for rtag in list(self.iter_registers(rspec)):
+        """"""
+        
             self.ctag.remove(rtag)
 
     def strip(self, substr: str, strip_end: bool = False) -> None:
@@ -1326,6 +1448,8 @@ class Cluster:
         assert isinstance(strip_end, bool)
         regex = create_regex_from_pattern(substr, strip_end)
         for rtag in self.ctag.iter("register"):
+        """"""
+        
             nametag = rtag.find("name")
             assert isinstance(nametag, Element), "Register must have name."
             assert isinstance(nametag.text, str)
@@ -1337,6 +1461,8 @@ class Cluster:
 
 
 def sorted_fields(fields):
+    """"""
+    
     return sorted(fields, key=lambda ftag: get_field_offset_width(ftag)[0])
 
 
@@ -1344,6 +1470,8 @@ class Register:
     """Class collecting methods for processing register contents"""
 
     def __init__(self, rtag):
+        """"""
+        
         self.rtag = rtag
 
     def size(self):
@@ -1635,6 +1763,8 @@ class Register:
             self.process_field_range(pname, fspec, fmod)
 
     def set_field_read_action(self, fspec, action):
+        """"""
+        
         for ftag in self.iter_fields(fspec):
             tag = ftag.find("readAction")
             if tag is None:
@@ -1642,6 +1772,8 @@ class Register:
             tag.text = action
 
     def set_field_modified_write_values(self, fspec, mwv):
+        """"""
+        
         for ftag in self.iter_fields(fspec):
             tag = ftag.find("modifiedWriteValues")
             if tag is None:
@@ -1793,6 +1925,8 @@ def process_device(svd, device, update_fields=True):
 
 
 def main(yaml_file):
+    """"""
+    
     # Load the specified YAML root file
     with open(yaml_file) as f:
         root = yaml.safe_load(f)

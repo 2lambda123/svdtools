@@ -32,6 +32,16 @@ def get_field_offset_width(ftag):
 
 
 def iter_clusters(ptag):
+    """Iterates through a list of clusters and returns a list of all clusters found.
+    Parameters:
+        - ptag (Element): The parent tag containing the clusters.
+    Returns:
+        - list: A list of all clusters found.
+    Processing Logic:
+        - Find parent tag containing clusters.
+        - If no clusters found, return empty list.
+        - Otherwise, find all clusters and return list."""
+    
     registers = ptag.find("registers")
     if registers is None:
         return []
@@ -40,6 +50,16 @@ def iter_clusters(ptag):
 
 
 def iter_registers(ptag):
+    """Iterates through a list of registers and returns the list.
+    Parameters:
+        - ptag (xml tag): Parent tag of the registers.
+    Returns:
+        - list: List of registers.
+    Processing Logic:
+        - Finds parent tag of registers.
+        - Returns empty list if parent tag is None.
+        - Finds all tags with name "register"."""
+    
     registers = ptag.find("registers")
     if registers is None:
         return []
@@ -48,6 +68,16 @@ def iter_registers(ptag):
 
 
 def iter_fields(rtag):
+    """"Returns a list of fields from the given rtag if they exist, otherwise returns an empty list."
+    Parameters:
+        - rtag (element): The rtag element to search for fields.
+    Returns:
+        - list: A list of fields found in the rtag element.
+    Processing Logic:
+        - Find "fields" element in rtag.
+        - If "fields" element does not exist, return empty list.
+        - Otherwise, find all "field" elements within "fields" element."""
+    
     fields = rtag.find("fields")
     if fields is None:
         return []
@@ -72,6 +102,19 @@ def get_access(tag):
 
 
 def get_string(node, tag, default=None):
+    """Get string from node.
+    Parameters:
+        - node (ElementTree Element): Element to search for string.
+        - tag (str): Tag to search for string.
+        - default (str): Default value if string not found.
+    Returns:
+        - str: String found in node.
+    Processing Logic:
+        - Get string from node.
+        - If string not found, return default.
+        - Remove extra whitespace from string.
+        - Join string if it contains whitespace."""
+    
     text = node.findtext(tag, default=default)
     if text == default:
         return text
@@ -79,6 +122,21 @@ def get_string(node, tag, default=None):
 
 
 def get_int(node, tag, default=None):
+    """This function takes in a node and a tag, and returns an integer value. If the text is not provided, it returns the default value. The function also processes the text to convert it into an integer if it is in binary or hexadecimal format. The function returns 1 if the text is "true" and 0 if the text is "false".
+    Parameters:
+        - node (Node): The node to retrieve the text from.
+        - tag (str): The tag of the text to retrieve.
+        - default (optional): The default value to return if the text is not provided. Defaults to None.
+    Returns:
+        - int: The integer value of the text.
+    Processing Logic:
+        - Converts text to lowercase and removes any leading or trailing whitespace.
+        - If the text is "true", returns 1.
+        - If the text is "false", returns 0.
+        - If the text starts with "0x", converts the text to an integer in hexadecimal format.
+        - If the text starts with "0b", converts the text to an integer in binary format.
+        - Otherwise, converts the text to an integer in base 10 format."""
+    
     text = get_string(node, tag, default=default)
     if text == default:
         return text
@@ -96,6 +154,16 @@ def get_int(node, tag, default=None):
 
 
 def derived_str(dname):
+    """"This function takes in a string and returns a derived string with the original string enclosed in parentheses. If the input string is None, an empty string is returned.
+    Parameters:
+        - dname (str): The string to be enclosed in parentheses.
+    Returns:
+        - str: The derived string with the original string enclosed in parentheses.
+    Processing Logic:
+        - Returns empty string if input is None.
+        - Encloses input string in parentheses.
+        - Uses f-string for string formatting.""""
+    
     if dname is None:
         return ""
     else:
@@ -301,5 +369,17 @@ def to_text(device):
 
 
 def main(svd_file):
+    """Converts a System View Description (SVD) file to text.
+    Parameters:
+        - svd_file (str): The path to the SVD file to be converted.
+    Returns:
+        - str: The text representation of the SVD file.
+    Processing Logic:
+        - Parse SVD file into device object.
+        - Convert device object to text.
+        - Return text representation of SVD file.
+    Example:
+        main("device.svd")"""
+    
     device = parse(svd_file)
     return to_text(device)
